@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GalleryApp.v2.5 | S4JID</title>
+    <link rel="shortcut icon" href="2697654_apple_photos_gallery_photo_photography_icon.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css"/>
+    <style>
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            font-family: 'Arial', sans-serif;
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            height: 100%;
+            --color: #E1E1E1;
+            background-color: #F3F3F3;
+            background-image: linear-gradient(0deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%, transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%, transparent);
+            background-size: 55px 55px;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.2)"/><circle cx="90" cy="90" r="1" fill="rgba(255,255,255,0.2)"/><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.2)"/></svg>');
+            background-repeat: repeat;
+            opacity: 0.1;
+            animation: particleFloat 20s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        .image-box {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .image-box img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+        }
+        .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 2px 6px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .image-box:hover .delete-button {
+            opacity: 1;
+        }
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+        @keyframes slideOut {
+            0% { transform: translateX(0); opacity: 1; }
+            100% { transform: translateX(100px); opacity: 0; }
+        }
+        #upload-zone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #upload-zone.hover {
+            border-color: #007bff;
+            background: rgba(0, 123, 255, 0.1);
+        }
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+        }
+        #modal-image {
+            max-width: 300px; /* Limit image width to 300px in modal */
+            height: auto; /* Maintain aspect ratio */
+            display: block;
+            margin: 0 auto; /* Center the image */
+        }
+        footer {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .social-links a {
+            text-decoration: none;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .social-links img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            filter: brightness(100%);
+            transition: all 0.3s ease;
+        }
+        .social-links a:hover img {
+            filter: brightness(150%) hue-rotate(15deg);
+            transform: scale(1.1);
+        }
+        @media (max-width: 768px) {
+            .social-links { gap: 10px; }
+            .social-links a { width: 35px; height: 35px; }
+            .social-links img { width: 20px; height: 20px; }
+            .image-box img { height: 70px; }
+        }
+        @media (max-width: 480px) {
+            .social-links { gap: 8px; }
+            .social-links a { width: 30px; height: 30px; }
+            .social-links img { width: 18px; height: 18px; }
+            .image-box img { height: 60px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="2697654_apple_photos_gallery_photo_photography_icon.png" alt="" width="30" height="30" style="border-radius: 10px;">
+                GalleryApp.v2.5
+            </a>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <h1 class="text-center animate__animated animate__bounceInDown">Gallery App</h1>
+        <div class="row mt-5">
+            <div class="col-md-6 offset-md-3 text-center">
+                <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+                <div id="upload-zone" class="animate__animated animate__pulse animate__infinite">
+                    Click or Drag Images Here 
+                </div>
+                <div class="error-message" id="error-message"></div>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <div class="image-grid" id="image-grid"></div>
+            </div>
+        </div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+    <div class="modal fade" id="image-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <img src="" id="modal-image">
+                    <div id="image-info"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" id="download-jpeg">Download as JPEG</button>
+                    <button class="btn btn-success" id="download-png">Download as PNG</button>
+                    <button class="btn btn-success" id="download-jpg">Download as JPG</button>
+                    <button class="btn btn-danger" id="delete-image">Delete Image</button>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="social-links animate__animated animate__slideInUp">
+                <span class="created-by" style="color: #fff; font-family: monospace; font-size: xx-large;">Developed by S4JID | Find me</span><br>
+            <a href="https://x.com/SheikhSajid69" target="_blank" title="X">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg" alt="X Logo">
+            </a>
+            <a href="https://instagram.com/the_sajidm69" target="_blank" title="Instagram">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram Logo">
+            </a>
+            <a href="https://github.com/sheikhsajid69" target="_blank" title="GitHub">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" style="background-color: #fff; border-radius: 50%;">
+            </a>
+            <a href="https://linkedin.com/in/sheikh-sajid-m" target="_blank" title="LinkedIn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png" alt="LinkedIn Logo">
+            </a>
+            <a href="https://medium.com/@sheikhsajid69.com" target="_blank" title="Medium">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Medium_logo_Monogram.svg" alt="Medium Logo">
+            </a>
+            <a href="mailto:sajidms1209@icloud.com" title="Mail">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Mail_%28iOS%29.svg" alt="Mail Logo">
+            </a>
+            <a href="https://open.spotify.com/user/316v53vlmm3zfjxoubogax3rwkom?si=507800f1184a4bea" target="_blank" title="Spotify">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg" alt="Spotify Logo">
+            </a>
+            <a href="https://topmate.io/sheikhsajid69" target="_blank" title="Topmate">
+                <img src="https://topmate.io/favicon.ico" alt="Topmate Logo" style="border-radius: 50%;">
+            </a>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/js/fontawesome.min.js"></script>
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const uploadZone = document.getElementById('upload-zone');
+        const imageGrid = document.getElementById('image-grid');
+        const pagination = document.getElementById('pagination');
+        const imageModal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+        const imageInfo = document.getElementById('image-info');
+        const downloadJpeg = document.getElementById('download-jpeg');
+        const downloadPng = document.getElementById('download-png');
+        const downloadJpg = document.getElementById('download-jpg');
+        const deleteImage = document.getElementById('delete-image');
+        const errorMessage = document.getElementById('error-message');
+
+        let currentPage = 1;
+        const imagesPerPage = 50;
+        let allImages = [];
+
+        // IndexedDB Setup
+        const dbName = "GalleryAppDB";
+        const storeName = "images";
+        let db;
+
+        const request = indexedDB.open(dbName, 1);
+        request.onerror = (event) => {
+            console.error("IndexedDB error:", event.target.error);
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = 'Database error. Uploads may not persist.';
+        };
+        request.onsuccess = (event) => {
+            db = event.target.result;
+            loadImagesFromDB();
+        };
+        request.onupgradeneeded = (event) => {
+            db = event.target.result;
+            const objectStore = db.createObjectStore(storeName, { keyPath: "base64String" });
+            objectStore.createIndex("name", "name", { unique: false });
+        };
+
+        function loadImagesFromDB() {
+            const transaction = db.transaction([storeName], "readonly");
+            const objectStore = transaction.objectStore(storeName);
+            const request = objectStore.getAll();
+            request.onsuccess = (event) => {
+                allImages = event.target.result;
+                displayImages();
+            };
+            request.onerror = () => {
+                console.error("Error loading images from DB");
+            };
+        }
+
+        function addImageToDB(image) {
+            const transaction = db.transaction([storeName], "readwrite");
+            const objectStore = transaction.objectStore(storeName);
+            const request = objectStore.add(image);
+            request.onerror = (event) => {
+                console.error("Error adding image to DB:", event.target.error);
+            };
+        }
+
+        function deleteImageFromDB(base64String) {
+            const transaction = db.transaction([storeName], "readwrite");
+            const objectStore = transaction.objectStore(storeName);
+            const request = objectStore.delete(base64String);
+            request.onerror = (event) => {
+                console.error("Error deleting image from DB:", event.target.error);
+            };
+        }
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('hover');
+        });
+
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('hover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('hover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                handleFileUpload(files);
+                fileInput.value = '';
+            }
+        });
+
+        function handleFileUpload(files) {
+            errorMessage.style.display = 'none';
+            let processedFiles = 0;
+
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) {
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = 'Only image files are allowed.';
+                    continue;
+                }
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result;
+                    if (!isImageDuplicate(base64String)) {
+                        const imageData = { base64String, name: file.name, size: file.size, type: file.type };
+                        allImages.unshift(imageData);
+                        addImageToDB(imageData);
+                    } else {
+                        errorMessage.style.display = 'block';
+                        errorMessage.textContent = 'Duplicate image skipped.';
+                    }
+                    processedFiles++;
+                    if (processedFiles === files.length) {
+                        displayImages();
+                    }
+                };
+                reader.onerror = () => {
+                    errorMessage.style.display = 'block';
+                    errorMessage.textContent = `Error reading file: ${file.name}`;
+                    processedFiles++;
+                    if (processedFiles === files.length) {
+                        displayImages();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function isImageDuplicate(base64String) {
+            return allImages.some(image => image.base64String === base64String);
+        }
+
+        function displayImages() {
+            const uniqueImages = [...new Map(allImages.map(item => [item.base64String, item])).values()];
+            allImages = uniqueImages;
+            
+            imageGrid.innerHTML = '';
+            const totalPages = Math.ceil(uniqueImages.length / imagesPerPage);
+            const start = (currentPage - 1) * imagesPerPage;
+            const end = Math.min(currentPage * imagesPerPage, uniqueImages.length);
+
+            for (let i = start; i < end; i++) {
+                const image = uniqueImages[i];
+                const imageBox = document.createElement('div');
+                imageBox.classList.add('image-box', 'animate__animated', 'animate__fadeInUp');
+                
+                const img = document.createElement('img');
+                img.src = image.base64String;
+                img.alt = image.name;
+
+                img.onerror = () => {
+                    console.error(`Failed to load image: ${image.name}`);
+                    imageBox.remove();
+                };
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.dataset.index = i;
+                deleteButton.onclick = (e) => {
+                    const index = parseInt(e.target.dataset.index);
+                    if (index >= 0 && index < allImages.length) {
+                        imageBox.style.animation = 'slideOut 0.5s ease forwards';
+                        imageBox.addEventListener('animationend', () => {
+                            const deletedImage = allImages.splice(index, 1)[0];
+                            deleteImageFromDB(deletedImage.base64String);
+                            displayImages();
+                        }, { once: true });
+                    }
+                };
+
+                img.addEventListener('click', () => {
+                    modalImage.src = image.base64String;
+                    imageInfo.innerHTML = `
+                        <p>Image Name: ${image.name}</p>
+                        <p>Image Size: ${image.size} bytes</p>
+                        <p>Image Type: ${image.type}</p>
+                    `;
+                    const imageModalModal = new bootstrap.Modal(imageModal);
+                    imageModalModal.show();
+                });
+
+                imageBox.appendChild(img);
+                imageBox.appendChild(deleteButton);
+                imageGrid.appendChild(imageBox);
+            }
+
+            updatePagination(totalPages);
+        }
+
+        function updatePagination(totalPages) {
+            pagination.innerHTML = '';
+            if (totalPages > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.textContent = 'Previous';
+                prevButton.onclick = () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        displayImages();
+                    }
+                };
+                pagination.appendChild(prevButton);
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const pageButton = document.createElement('button');
+                    pageButton.textContent = i;
+                    if (i === currentPage) {
+                        pageButton.classList.add('active');
+                    }
+                    pageButton.onclick = () => {
+                        currentPage = i;
+                        displayImages();
+                    };
+                    pagination.appendChild(pageButton);
+                }
+
+                const nextButton = document.createElement('button');
+                nextButton.textContent = 'Next';
+                nextButton.onclick = () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        displayImages();
+                    }
+                };
+                pagination.appendChild(nextButton);
+            }
+        }
+
+        downloadJpeg.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = modalImage.width;
+            canvas.height = modalImage.height;
+            ctx.drawImage(modalImage, 0, 0, canvas.width, canvas.height);
+            const url = canvas.toDataURL('image/jpeg');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'image.jpg';
+            a.click();
+        });
+
+        downloadPng.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = modalImage.width;
+            canvas.height = modalImage.height;
+            ctx.drawImage(modalImage, 0, 0, canvas.width, canvas.height);
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'image.png';
+            a.click();
+        });
+
+        downloadJpg.addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = modalImage.width;
+            canvas.height = modalImage.height;
+            ctx.drawImage(modalImage, 0, 0, canvas.width, canvas.height);
+            const url = canvas.toDataURL('image/jpeg');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'image.jpg';
+            a.click();
+        });
+
+        deleteImage.addEventListener('click', () => {
+            const base64String = modalImage.src;
+            const index = allImages.findIndex(img => img.base64String === base64String);
+            if (index !== -1) {
+                allImages.splice(index, 1);
+                deleteImageFromDB(base64String);
+                const imageModalModal = bootstrap.Modal.getInstance(imageModal);
+                imageModalModal.hide();
+                displayImages();
+            }
+        });
+
+    </script>
+</body>
+</html>
